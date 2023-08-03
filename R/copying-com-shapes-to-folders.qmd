@@ -1,0 +1,253 @@
+---
+title: "Copy com shapes into correct direcotries"
+author: "Dave"
+format: html
+editor: visual
+---
+
+## Libraries
+
+```{r libs}
+library(fs)
+library(here)
+library(vroom)
+library(dplyr)
+library(stringr)
+library(purrr)
+```
+
+## Delete copies
+
+```{r deleteCopies}
+file_delete(dir_ls(here(), type = "file", regex = "- Copy\\."))
+```
+
+## Name nicely
+
+```{r nameNicely}
+nice_name <- function(x){
+  str_to_lower(x) |> 
+    str_replace_all("&", "and") |> 
+    str_trim() |> 
+    str_remove_all("[:punct:]") |> 
+    str_replace_all("[:space:]", "-")
+}
+
+com_shape_files <- dir_ls(here(), type = "file", regex = "(\\.cpg)|(\\.dbf)|(\\.prj)|(\\.shp)|(\\.shx)")
+com_shape_files <- str_extract(com_shape_files, "(?<=/)[^/]+$")
+
+com_shape_file_name <- str_extract(com_shape_files, ".+(?=\\.)")
+com_shape_file_name <- nice_name(com_shape_file_name)
+
+com_shape_file_name <- str_c(com_shape_file_name, str_extract(com_shape_files, "\\..+$"))
+
+file_move(here(com_shape_files), here(com_shape_file_name))
+```
+
+## Move shapes
+
+```{r moveShapes}
+make_new_address <- function(x){
+  name <- str_extract(x, "[^/]+(?=\\..+$)")
+  
+  dir_create(here(name))
+  
+  new_address <- here(name, x)
+  return(new_address)
+}
+
+file_move(here(com_shape_files), make_new_address(com_shape_file_name))
+```
+
+### Put shapes into correct folders
+
+```{r shapesIntoFolders}
+get_name_and_move <- function(x){
+  nice_names <- str_extract(x, ".+(?=\\.)")
+  
+  suppressWarnings(dir_create(unique(nice_names)))
+  
+  new_homes <- nice_names
+  
+  file_move(here(x), here(new_homes))
+}
+
+get_name_and_move(com_shape_file_name)
+```
+
+### Fix Gwent Valley
+
+```{r fixGwent}
+gwent_files <- dir_ls(here(), regex = "gwent", recurse = TRUE, type = "file")
+
+gwent_dir   <- here("gwent-valleys")
+
+file_move(gwent_dir, here("gwent-valley"))
+
+old_gwent_files <- str_replace_all(gwent_files, "gwent-valleys/", "gwent-valley/")
+new_gwent_files <- str_replace_all(gwent_files, "gwent-valleys", "gwent-valley")
+
+file_move(old_gwent_files, new_gwent_files)
+
+rm(old_gwent_files, new_gwent_files, gwent_dir, gwent_files)
+```
+
+### Read table of coms/nations
+
+```{r readTableOfComsNations}
+coms_table <- vroom(here("com-diocese-nation-table.csv"))
+coms_table <- select(coms_table, com = "CoM", nation = "Nation")
+coms_table <- mutate(coms_table,
+                     com = 
+                       str_to_lower(com) |> 
+                       str_replace_all("&", "and") |> 
+                       str_remove_all("punct") |> 
+                       str_trim() |> 
+                       str_replace_all("[:space:]", "-"))
+
+coms_table <- mutate(coms_table,
+                     com = 
+                       case_when(
+                         com == "bradford---sorted" ~ "bradford",
+                         TRUE ~ com
+                       ))
+
+coms_table <- mutate(coms_table,
+                     folder = case_when(
+                       nation == "England" ~ "england-and-wales",
+                       nation == "Wales"  ~ "england-and-wales",
+                       TRUE                ~ nation
+                     ))
+
+coms_table <- mutate(coms_table, 
+                     folder = 
+                       str_to_lower(folder) |> 
+                       str_replace_all("[:space:]", "-"))
+```
+
+# Copy files to subfolders
+
+### England and Wales
+
+```{r englandAndWales}
+england_and_wales <- filter(coms_table, folder == "england-and-wales")
+
+england_and_wales <- rowwise(england_and_wales)
+
+move_com_files <- function(x){
+       tryCatch(
+         expr = 
+           {
+             folder <- here(x)
+             files <- dir_ls(folder, type = "file")
+             
+             home_dir <- here("..", "01_england-and-wales", "geospatial-data", "com-areas", x)
+             
+             dir_create(home_dir)
+             
+             home_dir_repeated <- rep(home_dir, length(files))
+
+             file_copy(files, home_dir_repeated)
+             },
+         
+         error = function(cnd){
+           warning("Could not move folder \"", x,
+                   "\". Failed with error: ", cnd[["message"]])
+         })}
+
+walk(england_and_wales[["com"]], move_com_files)
+
+```
+
+### Scotland
+
+```{r ScotlandCopying}
+scotland <- filter(coms_table, folder == "scotland")
+
+scotland <- rowwise(scotland)
+
+move_com_files <- function(x){
+       tryCatch(
+         expr = 
+           {
+             folder <- here(x)
+             files <- dir_ls(folder, type = "file")
+             
+             home_dir <- here("..", "02_scotland", "geospatial-data", "com-areas", x)
+             
+             dir_create(home_dir)
+             
+             home_dir_repeated <- rep(home_dir, length(files))
+
+             file_copy(files, home_dir_repeated)
+             },
+         
+         error = function(cnd){
+           warning("Could not move folder \"", x,
+                   "\". Failed with error: ", cnd[["message"]])
+         })}
+
+walk(scotland[["com"]], move_com_files)
+```
+
+### Northern Ireland
+
+```{r northernIrelandCopying}
+northern_ireland <- filter(coms_table, folder == "northern-ireland")
+
+northern_ireland <- rowwise(northern_ireland)
+
+move_com_files <- function(x){
+       tryCatch(
+         expr = 
+           {
+             folder <- here(x)
+             files <- dir_ls(folder, type = "file")
+             
+             home_dir <- here("..", "03_northern-ireland", "geospatial-data", "com-areas", x)
+             
+             dir_create(home_dir)
+             
+             home_dir_repeated <- rep(home_dir, length(files))
+
+             file_copy(files, home_dir_repeated)
+             },
+         
+         error = function(cnd){
+           warning("Could not move folder \"", x,
+                   "\". Failed with error: ", cnd[["message"]])
+         })}
+
+walk(northern_ireland[["com"]], move_com_files)
+```
+
+### Republic of Ireland
+
+```{r roiCopying}
+republic_of_ireland <- filter(coms_table, folder == "republic-of-ireland")
+
+republic_of_ireland <- rowwise(republic_of_ireland)
+
+move_com_files <- function(x){
+       tryCatch(
+         expr = 
+           {
+             folder <- here(x)
+             files <- dir_ls(folder, type = "file")
+             
+             home_dir <- here("..", "04_republic-of-ireland", "geospatial-data", "com-areas", x)
+             
+             dir_create(home_dir)
+             
+             home_dir_repeated <- rep(home_dir, length(files))
+
+             file_copy(files, home_dir_repeated)
+             },
+         
+         error = function(cnd){
+           warning("Could not move folder \"", x,
+                   "\". Failed with error: ", cnd[["message"]])
+         })}
+
+walk(republic_of_ireland[["com"]], move_com_files)
+```
