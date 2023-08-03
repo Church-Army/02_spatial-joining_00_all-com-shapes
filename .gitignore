@@ -9,3 +9,4 @@
 R/*_files
 *.xlsx
 /.Rhistory
+R/*_cache
