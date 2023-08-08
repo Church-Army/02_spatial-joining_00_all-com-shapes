@@ -19,7 +19,7 @@ library(purrr)
 ## Delete copies
 
 ```{r deleteCopies}
-file_delete(dir_ls(here(), type = "file", regex = "- Copy\\."))
+# file_delete(dir_ls(here(), type = "file", regex = "- Copy\\."))
 ```
 
 ## Name nicely
