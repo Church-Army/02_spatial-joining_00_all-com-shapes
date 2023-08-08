@@ -41,7 +41,7 @@ com_shape_file_name <- nice_name(com_shape_file_name)
 
 com_shape_file_name <- str_c(com_shape_file_name, str_extract(com_shape_files, "\\..+$"))
 
-file_move(here(com_shape_files), here(com_shape_file_name))
+# file_move(here(com_shape_files), here(com_shape_file_name))
 ```
 
 ## Move shapes
@@ -56,7 +56,7 @@ make_new_address <- function(x){
   return(new_address)
 }
 
-file_move(here(com_shape_files), make_new_address(com_shape_file_name))
+# file_move(here(com_shape_files), make_new_address(com_shape_file_name))
 ```
 
 ### Put shapes into correct folders
@@ -72,25 +72,9 @@ get_name_and_move <- function(x){
   file_move(here(x), here(new_homes))
 }
 
-get_name_and_move(com_shape_file_name)
+# get_name_and_move(com_shape_file_name)
 ```
 
-### Fix Gwent Valley
-
-```{r fixGwent}
-gwent_files <- dir_ls(here(), regex = "gwent", recurse = TRUE, type = "file")
-
-gwent_dir   <- here("gwent-valleys")
-
-file_move(gwent_dir, here("gwent-valley"))
-
-old_gwent_files <- str_replace_all(gwent_files, "gwent-valleys/", "gwent-valley/")
-new_gwent_files <- str_replace_all(gwent_files, "gwent-valleys", "gwent-valley")
-
-file_move(old_gwent_files, new_gwent_files)
-
-rm(old_gwent_files, new_gwent_files, gwent_dir, gwent_files)
-```
 
 ### Read table of coms/nations
 
