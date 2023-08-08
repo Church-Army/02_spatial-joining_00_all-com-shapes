@@ -125,7 +125,7 @@ move_com_files <- function(x){
              folder <- here(x)
              files <- dir_ls(folder, type = "file")
              
-             home_dir <- here("..", "02_spatial-joininig_01_england-and-wales", "geospatial-data", "com-areas", x)
+             home_dir <- here("..", "02_spatial-joining_01_england-and-wales", "geospatial-data", "com-areas", x)
              
              dir_create(home_dir)
              
@@ -157,7 +157,7 @@ move_com_files <- function(x){
              folder <- here(x)
              files <- dir_ls(folder, type = "file")
              
-             home_dir <- here("..", "02_spatial-joininig_02_scotland", "geospatial-data", "com-areas", x)
+             home_dir <- here("..", "02_spatial-joining_02_scotland", "geospatial-data", "com-areas", x)
              
              dir_create(home_dir)
              
@@ -188,7 +188,7 @@ move_com_files <- function(x){
              folder <- here(x)
              files <- dir_ls(folder, type = "file")
              
-             home_dir <- here("..", "02_spatial-joininig_03_northern-ireland", "geospatial-data", "com-areas", x)
+             home_dir <- here("..", "02_spatial-joining_03_northern-ireland", "geospatial-data", "com-areas", x)
              
              dir_create(home_dir)
              
@@ -219,7 +219,7 @@ move_com_files <- function(x){
              folder <- here(x)
              files <- dir_ls(folder, type = "file")
              
-             home_dir <- here("..", "02_spatial-joininig_04_republic-of-ireland", "geospatial-data", "com-areas", x)
+             home_dir <- here("..", "02_spatial-joining_04_republic-of-ireland", "geospatial-data", "com-areas", x)
              
              dir_create(home_dir)
              
